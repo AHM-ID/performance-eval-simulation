@@ -1,0 +1,37 @@
+simulation:
+  # Total simulation time
+  simulation_time: 100.0
+
+  # Rates (customers per time unit)
+  arrival_rate: 1.8
+  service_rate: 1.2
+
+  # System limits
+  max_queue_size: 20
+  max_customers: 1000
+
+  # Stop conditions
+  stop_condition:
+    automatic_mode: true
+    type: "time" # time, customers, events
+    value: 100.0
+    time_limit: 100.0
+
+  # Visualization settings
+  visualization:
+    enabled: true
+    update_interval_ms: 250
+    show_realtime_metrics: true
+    progress_bar_width: 50
+
+  # Random number generation
+  random:
+    seed: -1 # -1 for time-based random
+    distribution: "exponential" # exponential, uniform, constant
+
+  # Logging configuration
+  logging:
+    level: "info" # debug, info, warn, error
+    log_to_file: true
+    log_file_path: "./logs/simulation"
+    output_format: "json" # text, json
