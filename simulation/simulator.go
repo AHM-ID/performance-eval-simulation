@@ -111,9 +111,9 @@ func (sim *DiscreteEventSimulator) Run() *models.SimulationResults {
 			break
 		}
 
-		timeDiff := nextEvent.Timestamp - sim.state.LastEventTime
-		if timeDiff > 0 {
-			sim.stats.UpdatePreEvent(sim.state, timeDiff)
+		timeDiffForStats := nextEvent.Timestamp - sim.state.LastEventTime
+		if timeDiffForStats > 0 {
+			sim.stats.UpdatePreEvent(sim.state, timeDiffForStats)
 		}
 
 		event := sim.events.GetNextEvent()
@@ -133,9 +133,9 @@ func (sim *DiscreteEventSimulator) Run() *models.SimulationResults {
 	}
 
 	if sim.state.Clock < sim.config.SimulationTime {
-		finalTimeDiff := sim.config.SimulationTime - sim.state.LastEventTime
-		if finalTimeDiff > 0 {
-			sim.stats.UpdatePreEvent(sim.state, finalTimeDiff)
+		finalTimeDiffForStats := sim.config.SimulationTime - sim.state.LastEventTime
+		if finalTimeDiffForStats > 0 {
+			sim.stats.UpdatePreEvent(sim.state, finalTimeDiffForStats)
 		}
 		sim.state.Clock = sim.config.SimulationTime
 	}

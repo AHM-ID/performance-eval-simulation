@@ -14,7 +14,6 @@ type EnhancedStatisticsCollector struct {
 	config         *models.SimulationConfig
 	maxQueueLength int
 	maxWaitTime    float64
-	areaUnderQ     float64
 }
 
 func NewStatisticsCollector(config *models.SimulationConfig) *EnhancedStatisticsCollector {
@@ -29,7 +28,6 @@ func NewStatisticsCollector(config *models.SimulationConfig) *EnhancedStatistics
 		config:         config,
 		maxQueueLength: 0,
 		maxWaitTime:    0,
-		areaUnderQ:     0,
 	}
 }
 
@@ -37,10 +35,13 @@ func (sc *EnhancedStatisticsCollector) UpdatePreEvent(state *models.SystemState,
 	if timeDiff <= 0 {
 		return
 	}
-	sc.areaUnderQ += float64(len(state.Queue)) * timeDiff
-	if len(state.Queue) > sc.maxQueueLength {
-		sc.maxQueueLength = len(state.Queue)
+	currentQueueLength := len(state.Queue)
+	state.AreaUnderQ += float64(currentQueueLength) * timeDiff
+
+	if currentQueueLength > sc.maxQueueLength {
+		sc.maxQueueLength = currentQueueLength
 	}
+
 	if state.ServerBusy {
 		state.AreaUnderB += timeDiff
 	}
@@ -68,7 +69,7 @@ func (sc *EnhancedStatisticsCollector) CalculateFinalMetrics(state *models.Syste
 	sc.metrics.MaxWaitTime = sc.maxWaitTime
 
 	if state.Clock > 0 {
-		sc.metrics.AverageQueueLength = sc.areaUnderQ / state.Clock
+		sc.metrics.AverageQueueLength = state.AreaUnderQ / state.Clock
 		sc.metrics.ServerUtilization = state.AreaUnderB / state.Clock
 		sc.metrics.ServerBusyTime = state.AreaUnderB
 		sc.metrics.ServerIdleTime = state.Clock - state.AreaUnderB
@@ -97,9 +98,9 @@ func (sc *EnhancedStatisticsCollector) CalculateFinalMetrics(state *models.Syste
 		sc.metrics.AverageSystemTime = 0
 	}
 
-	sc.metrics.AverageInSystem = sc.metrics.Throughput * sc.metrics.AverageSystemTime
+	sc.metrics.AverageInSystem = sc.metrics.AverageQueueLength + sc.metrics.ServerUtilization
 	if state.Clock > 0 && sc.config.MaxQueueSize > 0 {
-		sc.metrics.QueueProbability = sc.areaUnderQ / state.Clock / float64(sc.config.MaxQueueSize)
+		sc.metrics.QueueProbability = state.AreaUnderQ / state.Clock / float64(sc.config.MaxQueueSize)
 	} else {
 		sc.metrics.QueueProbability = 0
 	}
